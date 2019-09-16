@@ -300,6 +300,7 @@ Now let's start a Jupyter notebook VM:
 
 At the end, you should be able to answer what the most likely disease causing factors were.
 
+If you ran out of time, have a look at this [completed Notebooks (as static pdf)](automl-on-variants-complete.pdf).
 
 ## Cleaning up
 
