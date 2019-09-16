@@ -1,10 +1,4 @@
-**TODO**
-
-- Time
-- Add Screenshots
-- Check link
-
-# Genomics on Azure Workshop | Hong-Kong | September 2019
+# Genomics on Azure | Hong-Kong | September 2019
 
 ## Introduction
 
@@ -305,6 +299,7 @@ Now let's start a Jupyter notebook VM:
 - Take note of the comments in the notebook and the generated output. Also note that the notebook depends on one interactive login, which requires your attention.
 
 At the end, you should be able to answer what the most likely disease causing factors were.
+
 
 ## Cleaning up
 
