@@ -7,7 +7,7 @@
 
 ## Introduction
 
-In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and want to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For one, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls (only few hundred sites) for a few hundred indivduals. While obviously artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
+In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and want to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For one, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls (only few hundred sites) for a few hundred individuals. While obviously artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ The process of setting up an Azure Pass, which gives you free credits on Azure i
 
 ## Duration
 
-The workshop should take roughly two hours. If get stuck during the [variant calling part](#variant-calling), feel free to skip ahead to the [AutoML part](#FIXME).
+The workshop should take roughly two hours. If get stuck during the [variant calling part](#variant-calling), feel free to skip ahead to the [AutoML part](#predicting-disease-causing-factors-with-azure-automl).
 
 ## Overview of steps
 
@@ -58,7 +58,7 @@ We will touch on the following subjects:
 
 In this step you will activate an Azure Pass, which allows you to try out Azure for free. This is a two-step process where you first create a Microsoft account (if you don't already have one) and then activate the Azure Pass subscription for that account.
 
-1. Open an Incognito/Private window in your browser (to avoid interference with existing sessions) and follow the  [step-by-step guide](https://www.microsoftazurepass.com/Home/HowTo?Length=5). Try using your organisational email account first. If that doesn’t work, please
+1. Open an Incognito/Private window in your browser (to avoid interference with existing sessions) and follow the  [step-by-step guide](https://www.microsoftazurepass.com/Home/HowTo?Length=5). Try using your organizational email account first. If that doesn’t work, please
 create a new Microsoft Account at https://account.microsoft.com/account. You can use
 any email address for the sign-up process.
 1. After successfully completing the Azure Pass redemption process, you will receive two
@@ -66,7 +66,7 @@ confirmation emails. One will list the amount available with the Azure Pass and 
 
 After receiving those emails, log into the [Azure portal](https://ms.portal.azure.com/#home) and have a look around.
 
-**Note**: Users with an existing Azure account, need to make sure they use the Azure pass subscription for subsequenent work. Log into the [Azure portal](https://ms.portal.azure.com/#home), click on your profile at the top right and "Switch directory" to your
+**Note**: Users with an existing Azure account, need to make sure they use the Azure pass subscription for subsequent work. Log into the [Azure portal](https://ms.portal.azure.com/#home), click on your profile at the top right and "Switch directory" to your
 Azure Pass subscription.
 
 You can keep track of the balance in your Azure Pass by either visiting https://www.microsoftazuresponsorships.com/Balance or go to "Cost Management + Billing" in the Azure Portal.
@@ -95,7 +95,7 @@ Next enter the required details:
 - Select your Subscription ("Azure Pass...")
 - Enter a name for the resource group, e.g. "workshop". Please remember this name as you will use it throughout this workshop.
 
-- As region select "(Asia Pacific) East Asia", which refers to our HongKong datacenters
+- As region select "(Asia Pacific) East Asia", which refers to our Hong Kong data-centers
 - Click on "Review + Create". This will trigger a quick validation of your input
 - Click on "Create"
 
@@ -103,7 +103,6 @@ Next enter the required details:
 
 - After a short while, a notification will appear on the top right saying "Resource group created". Click on the notification item (a bell) and "Go to resource group". Alternatively just search for "Subscriptions" in the search bar at the top
 - You will see a subscription ID. Please note this ID down. We will need it later. Think of a subscription as the equivalent of a credit card, or cost center to which costs are charged.
-
 
 ## Spinning up a Data Science Virtual Machine
 
@@ -129,7 +128,7 @@ Now that you are in the "Create a virtual machine" blade:
 - Select your Subscription ("Azure Pass...")
 - Select the previously created resource group
 - Give your virtual machine a name, e.g. "MyDSVM"
-- As regiom, select "(Asia Pacific) East Asia"
+- As region, select "(Asia Pacific) East Asia"
 - Skip all following options until "Administrator account"
 - Select "Password" instead of "SSH public key"
 - Enter a username (Note: you cannot use standard names like "admin")
@@ -150,13 +149,18 @@ To log into your VM click on "Go to resource" or click "Virtual machines" on the
 
 ![The connect button for a VM](img/dsvm-connect.png)
 
-Now open a terminal (any terminal for Linux and Mac Users, WSL for Windows users or use the Cloud shell in the Azure portal, located on the top right) or a dedicated SSH app (like [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)) and ssh into the machine, by using your user name and the IP address:
+To connect to your DSVM, let's start a terminal and run ssh. You can run any terminal or ssh client you like (Terminal.App for Mac OS, WSL for Windows or a dedicated SSH app like [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). The simplest is to use the Cloud Shell, which is integrated into the Azure portal at the top right.
+
+![Cloud Shell icon](img/portal-launch-icon.png)
+
+The first time you run it, it will ask you for permission to setup a persistent storage account. 
+Once it's running (make sure it's Bash, not Powershell)  ssh into your DSVM, by using your user name and the IP address:
 
     ssh user@ip
 
 ## Variant Calling with MS Genomics
 
-[MS Genomics](https://azure.microsoft.com/en-us/services/genomics/) is an accelerated cloud service that allows you to run BWA and the GATK best practices pipeline easily, securly and at scale. It starts from FastQ and outputs VCF or gVCF. Input files have to be stored on Blob storage and output files are written to Blob. The service is configured through commandline arguments or a configuration file. Here, we'll use commandline arguments.
+[MS Genomics](https://azure.microsoft.com/en-us/services/genomics/) is an accelerated cloud service that allows you to run BWA and the GATK best practices pipeline easily, securely and at scale. It starts from FastQ and outputs VCF or gVCF. Input files have to be stored on Blob storage and output files are written to Blob. The service is configured through commandline arguments or a configuration file. Here, we'll use commandline arguments.
 
 To get started we need
 
@@ -168,19 +172,29 @@ The above steps are all scripted up to save some time during the workshop. After
 
 ### Creating an MS Genomics account, a storage account and installing the MS Genomics client
 
-You need to create a storage account, so that the Genomics service has somewhere to read from and write to. Storage accounts are very versatile. In most cases you will use them for (Windows) file shares or Blob storage but there are more options. Blob (binary large object) storage is Azure's implementation of a general purpose object storage. Think of it as performant and robust, large scale online storage. You can use it for archive, data staging, temporary storage, sharing etc. It is not however an attached disk, i.e. you cannot mount it or access it like a file share. Think of it as a form of FTP server. For more information see [this introduction to Blob storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction). A great cross platform GUI for blob storage managment is the [Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/). A very performant way to interact with Blob storage is to use the CLI based `azcopy` (see below).
+You need to create a storage account, so that the Genomics service has somewhere to read from and write to. Storage accounts are very versatile. In most cases you will use them for (Windows) file shares or Blob storage but there are more options. Blob (binary large object) storage is Azure's implementation of a general purpose object storage. Think of it as performant and robust, large scale online storage. You can use it for archive, data staging, temporary storage, sharing etc. It is not however an attached disk, i.e. you cannot mount it or access it like a file share. Think of it as a form of FTP server. For more information see [this introduction to Blob storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction). A great cross platform GUI for blob storage management is the [Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/). A very performant way to interact with Blob storage is to use the CLI based `azcopy` (see below).
 
 To authenticate against MS Genomics you need a separate MS Genomics account. Accounts can be shared and can help to separate costs. Account authentication is done through keys, which we will use below.
 
-To submit jobs to MS Genomics you need to install its Python client, which is done here with conda and pip. [Conda](https://docs.conda.io/en/latest/) is a widely used package manager that allows you to install all sorts of packages as normal user. This includes hundreds of Bioinformatics packages. For more info have a look at [Bioconda](https://bioconda.github.io/user/install.html#set-up-channels). Here we use conda to create a separate Python environment to install software to.
+To submit jobs to MS Genomics you need to install its Python client, which is done here with conda and pip. [Conda](https://docs.conda.io/en/latest/) is a widely used package manager that allows you to install all sorts of packages as normal user. This includes hundreds of Bioinformatics packages. For more info have a look at [Bioconda](https://bioconda.github.io/user/install.html#set-up-channels).
 
-Again, to save some time, the installation is again part of the deployment script used below.
+As mentioned, to save some time, the above three steps are part of a script. Simply follow the instructions below: 
+
+- ssh into the DSVM (see above)
+- Run the GitHub repo containing the scripts: `git clone https://github.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019.git`
+- Run: `cd microsoft-roadshow-hongkong-09-2019/deployment-helper/`
+- Run: `deploy.sh -i yourSubscriptionId -g yourResourceGroupName`, where you replace `yourSubscriptionId` with the subscription ID recorded above and `yourResourceGroupName` with the resource group name you are using
+- You will likely be asked to log into your Azure account. Just follow the instructions.
+- Please save the generated output in a text file, especially the details about authentication (`msgenurl=, msgenkey=, strgacc=, strgkey=, strgurl=`). We will need those later
+- To get the keys for the created MS Genomics account, go the the ['Access Keys' blade in the Portal](https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts) and copy the key value somewhere.
+
+![MS Genomics Keys](img/msgenomics-keys.png)
 
 ### Copying of input data
 
-In this step you will copy some FastQ files to the "input" container of the blob storage account. We will use the commandline tool `azcopy` for this, which is already installed on your DSVM. Note that `azcopy` was recently rewritten entirely, so the online documentation will be for a newer version.
+Now that everything is set up, let's copy some example FastQ files to the just created blob storage account. We will use the commandline tool `azcopy` for this, which is already installed on your DSVM. Note that `azcopy` was recently rewritten entirely, so the current online documentation is for a newer version.
 
-Run the following command to coypy chr21 samples FastQ into your blob storage account:
+Run the following command to copy chr21 samples FastQ into your blob storage account:
 
     strgkey=...# put your storage key here 
     strgurl=...# put your storage url (without trailing slashes) here.
@@ -193,16 +207,15 @@ Note, the backslashes are just for line continuation.
 
 The transfer will roughly take a minute per file.
 
-Go to your storage account in the portal, click on Blobs and verify that the files are there.
+Go to the [storage account overview in the portal](https://portal.azure.com/?feature.customportal=false#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Storage%2FStorageAccounts), click on your account, then "Blobs" and verify that the uploaded files are in the input container.
 
 ### Variant calling
 
-[MS Genomics](https://azure.microsoft.com/en-in/services/genomics/) is an accelerated, HIPAA compliant and secure cloud implementation of BWA and the GATK best practices pipeline. It's roughly 7X faster than typical implementations and scales dynamically.  In short it does the heavy lifting of running a resource secondary analysis and resource hungry workflow for you, while you can focus on the science.
+Now that you've uploaded FastQ files you are ready to submit a job to MS Genomics. [MS Genomics](https://azure.microsoft.com/en-in/services/genomics/) is an accelerated, HIPAA compliant and secure cloud implementation of BWA and the GATK best practices pipeline. It's roughly 7X faster than typical implementations and scales dynamically.  In short it does the heavy lifting of running a resource secondary analysis and resource hungry workflow for you, while you can focus on the science.
 
-Now that you've uploaded FastQ files you are ready to submit a job to MS Genomics.
+For simplicity's sake, we will use a simple (but long) command line for job submission. Alternatively, you can use a config file instead.
 
-For simplicities sake, we will use a simple (but long) command line for job submission. Alternatively, you can use a config file instead.
-
+    conda activate msgen
     msgenurl=...# put your MS Genomics endpoint here
     msgenkey=...# put your MS Genomics key here 
     strgacc=...# put your storage account name here
@@ -212,28 +225,22 @@ For simplicities sake, we will use a simple (but long) command line for job subm
       -oa $strgacc -ok $strgkey -oc output \
       -b1 chr21_1.fq.gz -b2 chr21_2.fq.gz 
 
-Here, we specificy to use hg38, use BQSR, GATK4 and bgzip compression. We could have specified multiple FastQ files and requests a gVCF file instead of VCF.
+Here, we specify to use hg38, use BQSR, GATK4 and bgzip compression. We could have specified multiple FastQ files and requests a gVCF file instead of VCF.
 
 If you get the error message "msgen: invalid option -- 'u'", then you forgot to activate the conda environment (see above).
- 
+
 On successful submission, the command will return a process id.
 The job will take a few minutes to run. You can monitor its status with:
 
     msgen list -u $msgenurl -k $msgenkey
 
-Once completed, go the storage account in your portal, click on "Blobs" and check which output files were created. To download and inspect the created vcf file, log into your DSVM and run:
-
-    az storage blob copy $strgurl/output/chr21_1.fq.gz.${wfid}.vcf.gz .
-
-where `${wfid}` is the workflow id returned by `msgen list`
-
-Note, that we won't actually use this file later. Instead, we will assume you generated VCF files for hundreds of case/control samples already and proceed from there.
+Once completed, go the storage account in your portal, click on "Blobs" and check which output files were created. If you like you can download the output files straight from the portal. Note, that we won't actually use these files later. Instead, we will assume you generated VCF files for hundreds of case/control samples already and proceed from there.
 
 ## Predicting disease causing factors with Azure AutoML
 
 Azure Machine Learning offers web interfaces & SDKs, which allow you to quickly train and deploy your machine learning models and pipelines at scale. It supports a variety of open-source Python frameworks, such as PyTorch, TensorFlow, and scikit-learn. A very special product is ML studio, an interactive web-service that allows you to use machine learning capabilities without writing a single line of code. To make things more interesting here, we will use the Python APIs from an Azure ML Jupyter notebook.
 
-The goal is to take cleaned input data containing variant calls and some metainformation for a case/control study and use machine learning to predict causal factors. Setting up a machine learning pipeline can be time-consuming and requires a lot of prior-knowledge. You need to make an informed algorithm choice and train and tune the model. [Azure Automated Machine Learning (AutoML)](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml) is a very new service, coming straight out of Microsoft Research, that automates the time consuming, iterative tasks of machine learning model development. It is effectively an AI informed recommender system, that iterates over multiple algorithms and tunes parameters automatically. We will later use Explainers that allow you to interpret the model, thereby also pointing you at the most important features (causal factors). This makes the ML/AI models understandable. This AI transparency is one of [Microsoft's six AI guiding principles](https://www.microsoft.com/en-us/ai/our-approach-to-ai). When talking to other cloud providers, make sure to ask them about their principles :wink:.
+The goal is to take cleaned input data containing variant calls and some meta-information for a case/control study and use machine learning to predict causal factors. Setting up a machine learning pipeline can be time-consuming and requires a lot of prior-knowledge. You need to make an informed algorithm choice and train and tune the model. [Azure Automated Machine Learning (AutoML)](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml) is a very new service, coming straight out of Microsoft Research, that automates the time consuming, iterative tasks of machine learning model development. It is effectively an AI informed recommender system, that iterates over multiple algorithms and tunes parameters automatically. We will later use Explainers that allow you to interpret the model, thereby also pointing you at the most important features (causal factors). This makes the ML/AI models understandable. This AI transparency is one of [Microsoft's six AI guiding principles](https://www.microsoft.com/en-us/ai/our-approach-to-ai). When talking to other cloud providers, make sure to ask them about their principles :wink:.
 
 ### Create a Workspace and start an ML notebook
 
@@ -268,7 +275,7 @@ Now let's start a Jupyter notebook VM:
 - Download [this notebook](https://raw.githubusercontent.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019/master/automl-on-variants.ipynb)  to your local computer
 - In your Jupyter server, click on "Upload", select the just downloaded file and click "Upload" again
    Click on the ipynb file to open it
-- Now walk through all cells, by selecting them one after the other and clickin "Run" or hitting "Shift-Enter", per cell
+- Now walk through all cells, by selecting them one after the other and clicking "Run" or hitting "Shift-Enter", per cell
 - Take note of the comments in the notebook and the generated output. Also note that the notebook depends on one interactive login, which requires your attention.
 
 At the end, you should be able to answer what the most likely disease causing factors were.
