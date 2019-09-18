@@ -1,3 +1,8 @@
+- **No back and forth**
+- **Scripting**
+- **Use cloud shell**
+- **No az copy**
+
 # Genomics on Azure | Hong-Kong | September 2019
 
 ## Introduction
@@ -24,9 +29,8 @@ The overall flow is as follows:
 
 - Set up your Azure account
 - Create a resource group
-- Create an Azure Storage account
-- Create a Genomics account
 - Spin up a Data Science VM
+- Create an Azure Storage and an MS Genomics account
 - Copy FastQ files into the storage account
 - Submit an MS Genomics job for variant calling
 - Download the VCF file
@@ -89,15 +93,17 @@ To create a resource group:
 Next enter the required details:
 
 - Select your Subscription ("Azure Pass...")
-- Enter a name for the resource group, e.g. "workshop"
+- Enter a name for the resource group, e.g. "workshop". Please remember this name as you will use it throughout this workshop.
+
 - As region select "(Asia Pacific) East Asia", which refers to our HongKong datacenters
 - Click on "Review + Create". This will trigger a quick validation of your input
 - Click on "Create"
 
 ![Adding Resource Group details](img/rg-entries.png)
 
-After a short while, a notification will appear on the top right saying "Resource group created".
-Please use this resource group throughout this workshop.
+- After a short while, a notification will appear on the top right saying "Resource group created". Click on the notification item (a bell) and "Go to resource group". Alternatively just search for "Subscriptions" in the search bar at the top
+- You will see a subscription ID. Please note this ID down. We will need it later. Think of a subscription as the equivalent of a credit card, or cost center to which costs are charged.
+
 
 ## Spinning up a Data Science Virtual Machine
 
@@ -132,7 +138,7 @@ Now that you are in the "Create a virtual machine" blade:
 - Click on "Review + create"
 - Once your entries are validated, click "Create".
   
-![Adding Resource Group details](img/dsvm-creation.png)
+![Adding VM details](img/dsvm-creation.png)
 
 The deployment of your VM (which includes several resources like disks, IP etc.) will take a minute or so. Once done, it will display "Your deployment is complete". You now have your own server running in the cloud, armed with plenty of data science tools.
 
@@ -148,62 +154,27 @@ Now open a terminal (any terminal for Linux and Mac Users, WSL for Windows users
 
     ssh user@ip
 
-### Installing the MS Genomics client
-
-To use MS Genomics you need to install its Python client, which we will quickly do here with conda and pip. [Conda](https://docs.conda.io/en/latest/) is a widely used package manager that allows you to install all sorts of packages as normal user. This includes hundreds of Bioinformatics packages. For more info have a look at [Bioconda](https://bioconda.github.io/user/install.html#set-up-channels). Here we use conda to create a separate Python environment to install software to.
-
-- SSH into the DSVM (see above)
-- Create a conda environment into which we later install the MS Genomics client: `conda create -y -n msgen python=2.7 pip`
-- Activate the environment (this changes your PATH etc.): `conda activate msgen`
-- Install the MS Genomics client (`msgen`): `pip install msgen`
-- Try running `msgen help submit`, which should print usage information
-
-Note, should you get disconnected from the DSVM and have to log in again, make sure to run `conda activate msgen` again.
-
 ## Variant Calling with MS Genomics
 
 [MS Genomics](https://azure.microsoft.com/en-us/services/genomics/) is an accelerated cloud service that allows you to run BWA and the GATK best practices pipeline easily, securly and at scale. It starts from FastQ and outputs VCF or gVCF. Input files have to be stored on Blob storage and output files are written to Blob. The service is configured through commandline arguments or a configuration file. Here, we'll use commandline arguments.
 
-To get started we need a storage account for input and output files and an MS Genomics account. After account creation you will upload the FastQ files, run MS Genomics and download the VCF file.
+To get started we need
 
-### Creating an MS Genomics account
+1. a storage account for input and output files
+1. an MS Genomics account
+1. the MS Genomics client
 
-To use MS Genomics you again need an "account". Accounts can be shared and can help to separate costs. Account authentication is done through keys, which we will use below.
+The above steps are all scripted up to save some time during the workshop. After running this script, you will upload some example FastQ files and run MS Genomics.
 
-Follow the steps at for setting up an MS Genomics account in the [Genomics Quickstart](https://docs.microsoft.com/en-in/azure/genomics/quickstart-run-genomics-workflow-portal#set-up-create-a-microsoft-genomics-account-in-the-azure-portal).
-Stop at "Set up: Install the Microsoft Genomics Python client".
+### Creating an MS Genomics account, a storage account and installing the MS Genomics client
 
-Once the deployment is complete, click on "Go to deployment" and click on "Access keys". In a text editor note down the primary (or secondary) access key (let's call it `msgenkey`) and the URL (`msgenurl`). These are later needed to authenticate against the service.
+You need to create a storage account, so that the Genomics service has somewhere to read from and write to. Storage accounts are very versatile. In most cases you will use them for (Windows) file shares or Blob storage but there are more options. Blob (binary large object) storage is Azure's implementation of a general purpose object storage. Think of it as performant and robust, large scale online storage. You can use it for archive, data staging, temporary storage, sharing etc. It is not however an attached disk, i.e. you cannot mount it or access it like a file share. Think of it as a form of FTP server. For more information see [this introduction to Blob storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction). A great cross platform GUI for blob storage managment is the [Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/). A very performant way to interact with Blob storage is to use the CLI based `azcopy` (see below).
 
-### Creating a storage account
+To authenticate against MS Genomics you need a separate MS Genomics account. Accounts can be shared and can help to separate costs. Account authentication is done through keys, which we will use below.
 
-A storage account is needed here, so that the Genomics service has somewhere to read from and write to. Storage accounts are very versatile. In most cases you will use them for (Windows) file shares or Blob storage but there are more options. Blob (binary large object) storage is Azure's implementation of a general purpose object storage. Think of it as performant and robust, large scale online storage. You can use it for archive, data staging, temporary storage, sharing etc. It is not however an attached disk, i.e. you cannot mount it or access it like a file share. Think of it as a form of FTP server.
+To submit jobs to MS Genomics you need to install its Python client, which is done here with conda and pip. [Conda](https://docs.conda.io/en/latest/) is a widely used package manager that allows you to install all sorts of packages as normal user. This includes hundreds of Bioinformatics packages. For more info have a look at [Bioconda](https://bioconda.github.io/user/install.html#set-up-channels). Here we use conda to create a separate Python environment to install software to.
 
-Blob storage has three components:
-
-- A storage account: a unique namespace (which actually maps to http://storageaccount.blob.core.windows.net)
-- a container: the equivalent of a directory
-- the blob: the file itself
-
-![Blob components](img/blob.png)
-
-Don't worry about the details. For now it's just important to get the gist. For more information see [this introduction to Blob storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction).
-
- A great cross platform GUI for blob storage managment is the [Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/). A very performant way to interact with Blob storage is to use the CLI based `azcopy` (see below).
-
-To create a storage account:
-
-- Follow the steps in the [Genomics Quickstart](https://docs.microsoft.com/en-in/azure/genomics/quickstart-run-genomics-workflow-portal#create-a-microsoft-azure-storage-account)  and stop at "Upload input data to your storage account".
-- Once ready, go to the deployment 
-- Find "Blobs" in the menu list and click on it
-- Create a container (think: "directory") by clicking on "+Container" and name it "input"
-- Repeat the last step to create another container called "output"
-
-To authenticate against the storage account, we will need its name, URL and keys:
-
-- Go back the storage account and find the "Access Keys" menu button. Note down one of the two keys. Let's call it `strgkey`.
-- Copy the storage account name from the same page (`strgname`)
-- Go to "Properties" and copy the primary Blobservice endpoint URL (`strgurl`)
+Again, to save some time, the installation is again part of the deployment script used below.
 
 ### Copying of input data
 
@@ -243,6 +214,8 @@ For simplicities sake, we will use a simple (but long) command line for job subm
 
 Here, we specificy to use hg38, use BQSR, GATK4 and bgzip compression. We could have specified multiple FastQ files and requests a gVCF file instead of VCF.
 
+If you get the error message "msgen: invalid option -- 'u'", then you forgot to activate the conda environment (see above).
+ 
 On successful submission, the command will return a process id.
 The job will take a few minutes to run. You can monitor its status with:
 
@@ -281,7 +254,7 @@ Now let's start a Jupyter notebook VM:
 - In your ML workspace, locate the "Notebook VM" menu item
 - Click on "+ New" to start a new VM
 - Give it a name
-- For size select "STANDARD\_V3" which has 4 vCPUs and 14GB of RAM (if "D3\_V2" is pre-selected, just keep that entry)
+- For size select "STANDARD\_D3" which has 4 vCPUs and 14GB of RAM (if "D3\_V2" is pre-selected, just keep that entry)
 
 ![ML VM](img/ml-vm-create.png)
 
