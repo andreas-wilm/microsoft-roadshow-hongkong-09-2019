@@ -9,15 +9,15 @@
     - [Duration](#duration)
     - [Overview of steps](#overview-of-steps)
     - [Concepts](#concepts)
-  - [0. Activate Your Azure Pass](#0-activate-your-azure-pass)
+  - [Activate Your Azure Pass](#activate-your-azure-pass)
     - [Azure Portal](#azure-portal)
-  - [1. Create a resource group](#1-create-a-resource-group)
-  - [2. Spinning up a Data Science Virtual Machine](#2-spinning-up-a-data-science-virtual-machine)
-  - [3. Variant Calling with MS Genomics](#3-variant-calling-with-ms-genomics)
+  - [Create a resource group](#create-a-resource-group)
+  - [Spinning up a Data Science Virtual Machine](#spinning-up-a-data-science-virtual-machine)
+  - [Variant Calling with MS Genomics](#variant-calling-with-ms-genomics)
     - [Creating an MS Genomics account, a storage account and installing the MS Genomics client](#creating-an-ms-genomics-account-a-storage-account-and-installing-the-ms-genomics-client)
     - [Copying of input data](#copying-of-input-data)
     - [Variant calling](#variant-calling)
-  - [4. Predicting disease causing factors with Azure AutoML](#4-predicting-disease-causing-factors-with-azure-automl)
+  - [Predicting disease causing factors with Azure AutoML](#predicting-disease-causing-factors-with-azure-automl)
     - [Create a Workspace and start an ML notebook](#create-a-workspace-and-start-an-ml-notebook)
     - [Running the AutoML Notebook to analyze causal factors](#running-the-automl-notebook-to-analyze-causal-factors)
   - [Cleaning up](#cleaning-up)
@@ -35,11 +35,11 @@ You will need:
 - An Azure Pass (or an Azure account with an active subscription)
 - Basic familiarity with a terminal/shell
 
-The process of setting up an Azure Pass, which gives you free credits on Azure is [described below](#0-activate-your-azure-pass).
+The process of setting up an Azure Pass, which gives you free credits on Azure is [described below](#account-setup).
 
 ### Duration
 
-The workshop should take roughly 1.5 hours. If get stuck during the [variant calling part](#3-variant-calling-with-ms-genomics), feel free to skip ahead to the [AutoML part](#4-predicting-disease-causing-factors-with-azure-automl).
+The workshop should take roughly 1.5 hours. If get stuck during the [variant calling part](#variant-calling), feel free to skip ahead to the [AutoML part](#predicting-disease-causing-factors-with-azure-automl).
 
 ### Overview of steps
 
@@ -73,7 +73,7 @@ We will touch on the following subjects:
 
 If you'd like to learn more about Azure for free, a great place to start is [MS Learn](https://docs.microsoft.com/en-us/learn/), which has bite-size modules and different learning paths customized for different roles.
 
-## 0. Activate Your Azure Pass
+## Activate Your Azure Pass
 
 In this step you will activate an Azure Pass, which allows you to try out Azure for free. This is a two-step process where you first create a Microsoft account (if you don't already have one) and then activate the Azure Pass subscription for that account.
 
@@ -96,7 +96,7 @@ The [Azure portal](https://ms.portal.azure.com/#home) is a web-based and intuiti
 
 An aside: everything you do on the Portal can also be scripted.
 
-## 1. Create a resource group
+## Create a resource group
 
 [Resource groups](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups) are a way to organize related resources into a logical group. This could for example be storage and compute resources for a particular research project. Think of it as a virtual asset tag. Whenever you create anything on Azure you have to assign it to a resource group. This ensures that you can later easily analyze costs for a project and you easily delete all resources belonging to a project. No manual tagging is needed and you will never see any orphaned resources (when talking to other cloud providers make sure to ask how that's implemented on their platform :wink:).
 
@@ -123,7 +123,7 @@ Next enter the required details:
 - After a short while, a notification will appear on the top right saying "Resource group created". Click on the notification item (a bell) and "Go to resource group". Alternatively just search for "Subscriptions" in the search bar at the top
 - You will see a subscription ID. Please note this ID down. We will need it later. Think of a subscription as the equivalent of a credit card, or cost center to which costs are charged.
 
-## 2. Spinning up a Data Science Virtual Machine
+## Spinning up a Data Science Virtual Machine
 
 Virtual machines are "servers" in the cloud (only that they are virtualized for efficient resource usage). You can install any operating system and software you like on these machines manually, like you would on your personal computer. Alterntively, you can pick one of the free "images" available in the market place. A great default choice for scientists is the so-called Data Science VM (DSVM). This is an Azure Virtual Machine image, which comes pre-installed and pre-configured with many tools commonly used for data analytics, machine learning and AI training. The image comes in different operating systems (Ubuntu, CentOS, Windows) and flavours (e.g. GeoAI, Deep Learning VM). The [list of included tools](https://docs.microsoft.com/en-us/azure/machine-learning/data-science-virtual-machine/overview#whats-included-on-the-dsvm) is long and includes R Studio, Jupyter, Conda, Julia, TensorFlow, Cafe, Pytorch and several Azure tools. The alternative is to start with a plain Linux image and install required tools manually.
 
@@ -156,7 +156,7 @@ To log into your VM click on "Go to resource" or click "Virtual machines" on the
 
 ![Finding the IP for a VM](img/dsvm-ip.png)
 
- You can also get to it by clicking on "Connect", which pops up a little blade to the right. Copy the ssh connection string located at the bottom.
+ You can also get to it by clicking on "Connect", which pops up a little blade to the right.
 
 ![The connect button for a VM](img/dsvm-connect.png)
 
@@ -164,16 +164,12 @@ To connect to your DSVM, let's start a terminal and run ssh. You can run any ter
 
 ![Cloud Shell icon](img/portal-launch-icon.png)
 
-The first time you run it, it will ask you for permission to setup a persistent storage account.
-Once it's running (make sure it's Bash, not Powershell) ssh into your DSVM, by using your user name and the IP address:
+The first time you run it, it will ask you for permission to setup a persistent storage account. 
+Once it's running (make sure it's Bash, not Powershell)  ssh into your DSVM, by using your user name and the IP address:
 
-    ssh youruser@yourip
+    ssh user@ip
 
-The first time you are connecting ssh will let notify you that it doesn't know this machine. Please confirm the connection, by typing "yes".
-
-Try the Jupyter notebooks installation of your DSVM by navigating to https://yourip:8000. Make sure look through the `IntroToJupyterPython.ipynb` example notebook.
-
-## 3. Variant Calling with MS Genomics
+## Variant Calling with MS Genomics
 
 [MS Genomics](https://azure.microsoft.com/en-us/services/genomics/) is an accelerated cloud implementation of the BWA and GATK best practices pipeline, which can be run easily, securely and at scale. See the [whitepaper](https://azure.microsoft.com/en-us/resources/accelerate-precision-medicine-with-microsoft-genomics/) for more info. It starts from FastQ and outputs VCF or gVCF. Input files have to be stored on Blob storage and output files are written to Blob. The service is configured through commandline arguments or a configuration file. Here, we'll use commandline arguments.
 
@@ -253,7 +249,7 @@ Once completed, go the storage account in the Azure Portal, click on "Blobs" and
 
 Since you are using a free Azure Pass and submitting for the first time, your submission might spend some time in the queue. Feel free to move on to the next step.
 
-## 4. Predicting disease causing factors with Azure AutoML
+## Predicting disease causing factors with Azure AutoML
 
 Azure Machine Learning offers web interfaces & SDKs, which allow you to quickly train and deploy your machine learning models and pipelines at scale. It supports a variety of open-source Python frameworks, such as PyTorch, TensorFlow, and scikit-learn. A very special product is ML studio, an interactive web-service that allows you to use machine learning capabilities without writing a single line of code. To make things more interesting here, we will use the Python APIs from an Azure ML Jupyter notebook.
 
@@ -293,10 +289,10 @@ Now let's start a Jupyter notebook VM:
 
 - Download [this notebook](https://raw.githubusercontent.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019/master/automl-on-variants.ipynb)  to your local computer
 - In your Jupyter server, click on "Upload", select the just downloaded file and click "Upload" again
-- Click on the ipynb file to open it
-- Now run all cells, by selecting them one after the other and clicking "Run" or hitting "Shift-Enter", per cell
-
-Take note of the comments in the notebook and the generated output. Also note that one step requires interactive login, which requires your attention.
+   Click on the ipynb file to open it
+- Now walk through all cells, by selecting them one after the other and clicking "Run" or hitting "Shift-Enter", per cell
+- You will load a preprocessed CSV file containing variants for hundreds of control/case samples there
+- Take note of the comments in the notebook and the generated output. Also note that the notebook depends on one interactive login, which requires your attention.
 
 At the end, you should be able to answer, what the most likely disease causing factors were.
 

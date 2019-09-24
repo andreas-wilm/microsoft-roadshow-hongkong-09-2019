@@ -131,14 +131,13 @@ echo
 envName="msgen"
 echo "Creating conda environment for MS Genomics client (msgen)"
 if ! conda info --envs | grep -wq $envName; then 
-	conda create -y -n $envName python=2.7 pip
+	conda create -y -n $envName python=2.7 pip >/dev/null
 	conda activate $envName
-	pip install $envName
-	echo "Done"
+	pip install $envName >/dev/null || echo "ERROR: pip install failed"
 else
 	echo "Environment already exists. Skipping creation..."
 fi
-echo "To activate run: conda activate $envName"
+echo "To activate environment run: conda activate $envName"
 echo
 
 echo "Bye"
