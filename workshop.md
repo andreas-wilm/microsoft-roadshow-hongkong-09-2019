@@ -21,11 +21,11 @@
     - [Create a Workspace and start an ML notebook](#create-a-workspace-and-start-an-ml-notebook)
     - [Running the AutoML Notebook to analyze causal factors](#running-the-automl-notebook-to-analyze-causal-factors)
   - [Cleaning up](#cleaning-up)
-
+  - [And finally](#and-finally)
 
 ## Introduction
 
-In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and want to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For example, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls (only few hundred sites) for a few hundred individuals. While obviously artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
+In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics by going through a common scenario as a Genomics researcher. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and you would like to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For example, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls, for a few hundred sites and a few hundred individuals. While artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
 
 ### Prerequisites
 
@@ -71,7 +71,7 @@ We will touch on the following subjects:
 - [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/how-to-configure-auto-train)
 - [Jupyter Notebooks](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html)
 
-A great place to start learning Azure for free is [MS Learn](https://docs.microsoft.com/en-us/learn/), which has bite-size modules and different learning paths customized for different roles.
+If you'd like to learn more about Azure for free, a great place to start is [MS Learn](https://docs.microsoft.com/en-us/learn/), which has bite-size modules and different learning paths customized for different roles.
 
 ## Activate Your Azure Pass
 
@@ -92,13 +92,13 @@ You can keep track of the balance in your Azure Pass by either visiting https://
 
 ### Azure Portal
 
-The [Azure portal](https://ms.portal.azure.com/#home) is web-based and intuitive console for all resources on Azure. You can build, manage, and monitor everything from simple web apps to complex cloud deployments. Have a quick look at [this introduction to the elements of the portal](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-overview#getting-around-the-portal) or jump straight in and start using it. The sidebar and header are always present. Everything else in the portal is organized in "blades" that open and keep opening to the right (think: swipe motion).
+The [Azure portal](https://ms.portal.azure.com/#home) is a web-based and intuitive console for all resources on Azure. You can build, manage, and monitor everything from simple web apps to complex cloud deployments. Have a quick look at [this introduction to the elements of the portal](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-overview#getting-around-the-portal) or jump straight in and start using it. The sidebar and header are always present. Everything else in the portal is organized in "blades" that open and keep opening to the right (think: swipe motion).
 
 An aside: everything you do on the Portal can also be scripted.
 
 ## Create a resource group
 
-[Resource groups](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups) are a like namespaces containing related resources. This could for example be storage and compute resources for a particular research project. Think of it as a virtual asset tag. Whenever you create anything on Azure you have to assign it to a resource group. This ensures that you can later easily analyze costs for a project and you easily delete all resources belonging to a project. No manual tagging is needed and you will never see any orphaned resources (when talking to other cloud providers make sure to ask how that's implemented on their platform :wink:).
+[Resource groups](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups) are like namespaces containing related resources. This could for example be storage and compute resources for a particular research project. Think of it as a virtual asset tag. Whenever you create anything on Azure you have to assign it to a resource group. This ensures that you can later easily analyze costs for a project and you easily delete all resources belonging to a project. No manual tagging is needed and you will never see any orphaned resources (when talking to other cloud providers make sure to ask how that's implemented on their platform :wink:).
 
 To create a resource group:
 
@@ -125,7 +125,7 @@ Next enter the required details:
 
 ## Spinning up a Data Science Virtual Machine
 
-Virtual machines are "servers" in the cloud (only that they are virtualized for efficient resource usage). You can install any operating system you like on these machines. One great default choice for scientists is the so-called Data Science VM (DSVM). This is an Azure Virtual Machine image, which comes pre-installed and pre-configured with many tools commonly used for data analytics, machine learning and AI training. The image comes in different operating systems (Ubuntu, CentOS, Windows) and flavours (e.g. GeoAI, Deep Learning VM). The [list of included tools](https://docs.microsoft.com/en-us/azure/machine-learning/data-science-virtual-machine/overview#whats-included-on-the-dsvm) is long and includes R Studio, Jupyter, Conda, Julia, TensorFlow, Cafe, Pytorch and several Azure tools. The alternative is to start with a plain Linux image and install required tools manually.
+Virtual machines are "servers" in the cloud (only that they are virtualized for efficient resource usage). You can install any operating system and software you like on these machines manually, like you would on your personal computer. Alterntively, you can pick one of the free "images" available in the market place. A great default choice for scientists is the so-called Data Science VM (DSVM). This is an Azure Virtual Machine image, which comes pre-installed and pre-configured with many tools commonly used for data analytics, machine learning and AI training. The image comes in different operating systems (Ubuntu, CentOS, Windows) and flavours (e.g. GeoAI, Deep Learning VM). The [list of included tools](https://docs.microsoft.com/en-us/azure/machine-learning/data-science-virtual-machine/overview#whats-included-on-the-dsvm) is long and includes R Studio, Jupyter, Conda, Julia, TensorFlow, Cafe, Pytorch and several Azure tools. The alternative is to start with a plain Linux image and install required tools manually.
 
 To start your own DSVM:
 
@@ -189,7 +189,7 @@ To authenticate against MS Genomics you need a separate MS Genomics account. Acc
 
 And lastly, to submit jobs to MS Genomics you need to install its Python client, which is done here with conda and pip. [Conda](https://docs.conda.io/en/latest/) is a widely used package manager that allows you to install all sorts of packages as normal user. This includes hundreds of Bioinformatics packages. For more info have a look at [Bioconda](https://bioconda.github.io/user/install.html#set-up-channels).
 
-As mentioned, to save some time, the above three steps are part of a script. Simply follow the instructions below: 
+As mentioned, to save some time, the above three steps are part of a script. Simply follow the instructions below:
 
 - ssh into the DSVM (see above)
 - Download the GitHub repo containing the scripts: `git clone https://github.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019.git`
@@ -224,7 +224,7 @@ Go to the [storage account overview in the portal](https://portal.azure.com/?fea
 
 Now that you've uploaded FastQ files you are ready to submit a job to MS Genomics. [MS Genomics](https://azure.microsoft.com/en-in/services/genomics/) is an accelerated, HIPAA compliant and secure cloud implementation of BWA and the GATK best practices pipeline. It's roughly 7X faster than typical implementations and scales dynamically.  In short, it does the heavy lifting of running a resource hungry secondary analysis workflow for you and you can focus on the science.
 
-For simplicity's sake, we will use a simple (admittedly long) command-line for job submission. Alternatively, you could use a config file.
+For simplicity, we will use a simple (admittedly long) command-line for job submission. Alternatively, you could use a config file.
 
     conda activate msgen
     msgenurl=...# put your MS Genomics endpoint here
@@ -307,3 +307,7 @@ Because all resources used here were created under one resource group, you can e
 - Confirm by typing in the name of your resource group and click on "Delete"
 
 All attached resources will now be deleted and consequently won't be charged anymore.
+
+## And finally
+
+Please share your feedback with us using this one minute survey: https://aka.ms/hongkonggenomics
