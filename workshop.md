@@ -98,7 +98,7 @@ An aside: everything you do on the Portal can also be scripted.
 
 ## Create a resource group
 
-[Resource groups](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups) are like namespaces containing related resources. This could for example be storage and compute resources for a particular research project. Think of it as a virtual asset tag. Whenever you create anything on Azure you have to assign it to a resource group. This ensures that you can later easily analyze costs for a project and you easily delete all resources belonging to a project. No manual tagging is needed and you will never see any orphaned resources (when talking to other cloud providers make sure to ask how that's implemented on their platform :wink:).
+[Resource groups](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview#resource-groups) are a way to organize related resources into a logical group. This could for example be storage and compute resources for a particular research project. Think of it as a virtual asset tag. Whenever you create anything on Azure you have to assign it to a resource group. This ensures that you can later easily analyze costs for a project and you easily delete all resources belonging to a project. No manual tagging is needed and you will never see any orphaned resources (when talking to other cloud providers make sure to ask how that's implemented on their platform :wink:).
 
 To create a resource group:
 
@@ -160,7 +160,7 @@ To log into your VM click on "Go to resource" or click "Virtual machines" on the
 
 ![The connect button for a VM](img/dsvm-connect.png)
 
-To connect to your DSVM, let's start a terminal and run ssh. You can run any terminal or ssh client you like (Terminal.App for Mac OS, WSL for Windows or a dedicated SSH app like [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). The simplest is to use the Cloud Shell, which is integrated into the Azure portal at the top right.
+To connect to your DSVM, let's start a terminal and run ssh. You can run any terminal or ssh client you like (Terminal App for Mac OS, [Windows subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or a dedicated SSH app like [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html). The simplest is to use the Cloud Shell, which is integrated into the Azure portal at the top right.
 
 ![Cloud Shell icon](img/portal-launch-icon.png)
 
@@ -176,8 +176,8 @@ Once it's running (make sure it's Bash, not Powershell)  ssh into your DSVM, by 
 To get started we need
 
 1. a storage account for input and output files
-1. an MS Genomics account
-1. the MS Genomics client
+2. an MS Genomics account
+3. the MS Genomics client
 
 The above three steps are rather mechinical, which is why we scripted them up for you to save some time during the workshop. After running this script, you will upload some example FastQ files and run MS Genomics.
 
@@ -194,10 +194,10 @@ As mentioned, to save some time, the above three steps are part of a script. Sim
 - ssh into the DSVM (see above)
 - Download the GitHub repo containing the scripts: `git clone https://github.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019.git`
 - Run: `cd microsoft-roadshow-hongkong-09-2019/deployment-helper/`
-- Run: `deploy.sh -i yourSubscriptionId -g yourResourceGroupName`, where you replace `yourSubscriptionId` with the subscription ID recorded above and `yourResourceGroupName` with the resource group name you are using
+- Run: `bash deploy.sh -i yourSubscriptionId -g yourResourceGroupName`, where you replace `yourSubscriptionId` with the subscription ID recorded above and `yourResourceGroupName` with the resource group name you are using
 - You will likely be asked to log into your Azure account. Just follow the instructions.
-- Please save the generated output in a text file, especially the details about authentication (`msgenurl=, msgenkey=, strgacc=, strgkey=, strgurl=`). We will need those later
-- To get the authentication keys for the created MS Genomics account, go the the ['Access Keys' blade in the Portal](https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts) and copy the value for the primary access key somewhere.
+- Please save the generated output in a text file, especially the details about authentication (`msgenurl=, strgacc=, strgkey=, strgurl=`). We will need those later
+- To get the authentication keys for the created MS Genomics account (`msgenkey`), go the the ['Access Keys' blade in the Portal](https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts) and copy the value for the primary access key somewhere.
 
 ![MS Genomics Keys](img/msgenomics-keys.png)
 
@@ -246,6 +246,8 @@ The job will take a few minutes to run. You can monitor its status with:
     msgen list -u $msgenurl -k $msgenkey
 
 Once completed, go the storage account in the Azure Portal, click on "Blobs" and check which output files were created. If you like you can download the output files straight from the portal. Note, that we won't actually use these files later. Instead, we will assume you generated VCF files for hundreds of case/control samples already and proceed from there.
+
+Since you are using a free Azure Pass and submitting for the first time, your submission might spend some time in the queue. Feel free to move on to the next step.
 
 ## Predicting disease causing factors with Azure AutoML
 
