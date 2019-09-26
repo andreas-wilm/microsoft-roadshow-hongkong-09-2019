@@ -25,9 +25,7 @@
 
 ## Introduction
 
-In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics by going through a common scenario as a Genomics researcher. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and you would like to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For example, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls, for a few hundred sites and a few hundred individuals. To save time you can skip the variant calling step.
-
-While artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
+In this workshop you will explore how to use [Microsoft Azure](https://azure.microsoft.com/en-us/) for Genomics/Bioinformatics by going through a common scenario as a Genomics researcher. The scenario is as follows: you have received Illumina sequenced samples for a case/control study and you would like to predict which variants are likely causal for the disease. For variant calling we will use [Microsoft Genomics](https://azure.microsoft.com/en-us/services/genomics/) and for the prediction of causal variants we will use [Azure AutoML](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-automated-ml). To pack this entire scenario into the short time frame of a workshop, we will take some shortcuts. For example, we will only call variants for one chromosome and one sample. After that, you will be provided with a CSV file that contains gender, disease status and variant calls, for a few hundred sites and a few hundred individuals. While artificial, this workshop will expose you to a number of tools and touch on a number of concepts and services, that you can use in your daily work.
 
 ### Prerequisites
 
@@ -41,7 +39,7 @@ The process of setting up an Azure Pass, which gives you free credits on Azure i
 
 ### Duration
 
-The workshop should take roughly 2 hours. You don't have to complete the entire workshop. To save time you can skip the [variant calling part](#3-variant-calling-with-ms-genomics) and start with [AutoML](#4-predicting-disease-causing-factors-with-azure-automl).
+The workshop should take roughly 1.5 hours. If get stuck during the [variant calling part](#3-variant-calling-with-ms-genomics), feel free to skip ahead to the [AutoML part](#4-predicting-disease-causing-factors-with-azure-automl).
 
 ### Overview of steps
 
@@ -129,7 +127,7 @@ Next enter the required details:
 
 Virtual machines are "servers" in the cloud (only that they are virtualized for efficient resource usage). You can install any operating system and software you like on these machines manually, like you would on your personal computer. Alterntively, you can pick one of the free "images" available in the market place. A great default choice for scientists is the so-called Data Science VM (DSVM). This is an Azure Virtual Machine image, which comes pre-installed and pre-configured with many tools commonly used for data analytics, machine learning and AI training. The image comes in different operating systems (Ubuntu, CentOS, Windows) and flavours (e.g. GeoAI, Deep Learning VM). The [list of included tools](https://docs.microsoft.com/en-us/azure/machine-learning/data-science-virtual-machine/overview#whats-included-on-the-dsvm) is long and includes R Studio, Jupyter, Conda, Julia, TensorFlow, Cafe, Pytorch and several Azure tools. The alternative is to start with a plain Linux image and install required tools manually.
 
-To start your own Linux DSVM:
+To start your own DSVM:
 
 - Click on "Create a resource"
 - Search for "Data Science"
@@ -166,19 +164,19 @@ To connect to your DSVM, let's start a terminal and run ssh. You can run any ter
 
 ![Cloud Shell icon](img/portal-launch-icon.png)
 
-The first time you run it, it will ask you for permission to setup a persistent storage account (confirm) and whether to run Powershell or Bash. Choose Bash. Once the cloud shell is running ssh into your DSVM, by using your user name and the IP address:
+The first time you run it, it will ask you for permission to setup a persistent storage account.
+Once it's running (make sure it's Bash, not Powershell) ssh into your DSVM, by using your user name and the IP address:
 
     ssh youruser@yourip
 
 The first time you are connecting ssh will let notify you that it doesn't know this machine. Please confirm the connection, by typing "yes".
 
-Try the Jupyter notebooks installation of your DSVM by navigating to https://yourip:8000 (note: http**s**). Make sure look through the `IntroToJupyterPython.ipynb` example notebook.
+Try the Jupyter notebooks installation of your DSVM by navigating to https://yourip:8000. Make sure look through the `IntroToJupyterPython.ipynb` example notebook.
 
-If you would also like to try out RStudio you will first have to manually enable the service, by logging in via ssh and running the following command:
+If you would also like to try out RStudio you will first have to enable the service, by logging in via ssh and running the following command:
 
     sudo rstudio-server verify-installation
 
-After that you log into RStudio at http://yourip:8787
 
 ## 3. Variant Calling with MS Genomics
 
@@ -205,8 +203,8 @@ As mentioned, to save some time, the above three steps are part of a script. Sim
 - ssh into the DSVM (see above)
 - Download the GitHub repo containing the scripts: `git clone https://github.com/andreas-wilm/microsoft-roadshow-hongkong-09-2019.git`
 - Run: `cd microsoft-roadshow-hongkong-09-2019/deployment-helper/`
-- Run: `bash deploy.sh -i yourSubscriptionId -g yourResourceGroupName`, where you replace `yourSubscriptionId` with the subscription ID recorded above and `yourResourceGroupName` with the resource group name you are using. If you observe any error messages, please let us know.
-- If you are asked to log into your Azure account, just follow the instructions.
+- Run: `bash deploy.sh -i yourSubscriptionId -g yourResourceGroupName`, where you replace `yourSubscriptionId` with the subscription ID recorded above and `yourResourceGroupName` with the resource group name you are using
+- You will likely be asked to log into your Azure account. Just follow the instructions.
 - Please save the generated output in a text file, especially the details about authentication (`msgenurl=, strgacc=, strgkey=, strgurl=`). We will need those later
 - To get the authentication keys for the created MS Genomics account (`msgenkey`), go the the ['Access Keys' blade in the Portal](https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts) and copy the value for the primary access key somewhere.
 
@@ -249,7 +247,7 @@ For simplicity, we will use a simple (admittedly long) command-line for job subm
 
 Here, we specify to use hg38, use BQSR, GATK4 and bgzip compression. Multiple FastQ files and gVCF output are also supported.
 
-If you get the error message "msgen: invalid option -- 'u'", then you forgot to activate the conda environment (see above) or your earlier msgen installation failed. Please let us know.
+If you get the error message "msgen: invalid option -- 'u'", then you forgot to activate the conda environment (see above).
 
 On successful submission, the command will return a process id.
 The job will take a few minutes to run. You can monitor its status with:
@@ -258,7 +256,7 @@ The job will take a few minutes to run. You can monitor its status with:
 
 Once completed, go the storage account in the Azure Portal, click on "Blobs" and check which output files were created. If you like you can download the output files straight from the portal. Note, that we won't actually use these files later. Instead, we will assume you generated VCF files for hundreds of case/control samples already and proceed from there.
 
-Since you are using a free Azure Pass and submitting for the first time, your submission might spend some time in the queue. Feel free to move on to the next step and check back again later.
+Since you are using a free Azure Pass and submitting for the first time, your submission might spend some time in the queue. Feel free to move on to the next step.
 
 ## 4. Predicting disease causing factors with Azure AutoML
 

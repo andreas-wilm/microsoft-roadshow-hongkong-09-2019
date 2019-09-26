@@ -101,8 +101,9 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 echo "Successfully created Genomics account."
+echo "Please note down the following value:"
 echo "msgenurl=https://${region}.microsoftgenomics.net"
-echo "msgenkey: see 'Access Keys' blade at https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts"
+#echo "msgenkey: see 'Access Keys' blade at https://ms.portal.azure.com/#blade/HubsExtension/BrowseResourceBlade/resourceType/Microsoft.Genomics%2Faccounts"
 echo
 
 deploymentName="StorageAccount"
@@ -123,6 +124,7 @@ fi
 echo "Created storage account"
 storageKey=$(az storage account keys list --account-name ${storageAccountName} \
 	--output table | awk '/key1/ {print $NF}')
+echo "Please note down the following values:"
 echo "strgacc=${storageAccountName}"
 echo "strgkey=${storageKey}"
 echo "strgurl=https://${storageAccountName}.blob.core.windows.net"
@@ -132,12 +134,14 @@ envName="msgen"
 echo "Creating conda environment for MS Genomics client (msgen)"
 if ! conda info --envs | grep -wq $envName; then 
 	conda create -y -n $envName python=2.7 pip >/dev/null
+	conda init bash >/dev/null
+	source ~/.bashrc
 	conda activate $envName
-	pip install $envName >/dev/null || echo "ERROR: pip install failed"
+	pip install --force msgen >/dev/null || echo "ERROR: pip install failed. Try running: conda activate $envName; pip install -force msgen" 1>&2
 else
 	echo "Environment already exists. Skipping creation..."
 fi
-echo "To activate environment run: conda activate $envName"
+echo "To activate msgen environment run: conda activate $envName"
 echo
 
 echo "Bye"
